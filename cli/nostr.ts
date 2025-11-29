@@ -28,6 +28,9 @@ async function main() {
             return;
         }
         const eventID = NoteID.FromString(id);
+        if (eventID instanceof Error) {
+            return eventID;
+        }
         const pool = new ConnectionPool();
         const err = await pool.addRelayURLs(relays);
         if (err instanceof Error) {
