@@ -2,10 +2,10 @@ import { PrivateKey, PublicKey } from "./key.ts";
 import { decrypt_with_shared_secret, encrypt, utf8Encode } from "./nip4.ts";
 import * as nip44 from "./nip44.ts";
 
-import { encodeHex } from "@std/encoding";
+import { encodeHex, decodeHex } from "@std/encoding";
 import { getSharedSecret } from "@noble/secp256k1";
-import { schnorr } from "@noble/curves/secp256k1";
-import { sha256 } from "@noble/hashes/sha256";
+import { schnorr } from "@noble/curves/secp256k1.js";
+import { sha256 } from "@noble/hashes/sha2.js";
 
 export enum NostrKind {
     META_DATA = 0,
@@ -222,7 +222,7 @@ function eventCommitment(event: UnsignedNostrEvent): string {
 }
 
 export async function signId(id: string, privateKey: string) {
-    return schnorr.sign(id, privateKey);
+    return schnorr.sign(decodeHex(id), decodeHex(privateKey));
 }
 
 /**
@@ -286,7 +286,7 @@ export class InMemoryAccountContext implements NostrAccountContext {
             let key = this.sharedSecretsMap.get(decryptionPublicKey);
             if (key == undefined) {
                 try {
-                    key = getSharedSecret(this.privateKey.hex, "02" + decryptionPublicKey) as Uint8Array;
+                    key = getSharedSecret(decodeHex(this.privateKey.hex), decodeHex("02" + decryptionPublicKey)) as Uint8Array;
                 } catch (e) {
                     return e as Error;
                 }
@@ -299,7 +299,7 @@ export class InMemoryAccountContext implements NostrAccountContext {
 
 export async function verifyEvent(event: NostrEvent) {
     try {
-        return schnorr.verify(event.sig, await calculateId(event), event.pubkey);
+        return schnorr.verify(decodeHex(event.sig), decodeHex(await calculateId(event)), decodeHex(event.pubkey));
     } catch {
         return false;
     }

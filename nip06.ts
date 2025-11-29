@@ -1,7 +1,7 @@
 // copied from https://github.com/nbd-wtf/nostr-tools/blob/master/nip06.ts
 import { encodeHex } from "@std/encoding";
 import { generateMnemonic, mnemonicToSeedSync, validateMnemonic } from "@scure/bip39";
-import { wordlist } from "@scure/bip39/wordlists/english";
+import { wordlist } from "@scure/bip39/wordlists/english.js";
 import { HDKey } from "@scure/bip32";
 import { PrivateKey } from "./key.ts";
 

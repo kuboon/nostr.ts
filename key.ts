@@ -1,15 +1,15 @@
 import { bech32 } from "./scure.ts";
 import { decodeHex, encodeHex } from "@std/encoding";
 import { utils } from "@noble/secp256k1";
-import { schnorr } from "@noble/curves/secp256k1";
-import { hexToNumber } from "@noble/ciphers/utils";
+import { schnorr } from "@noble/curves/secp256k1.js";
+import { hexToNumber } from "@noble/ciphers/utils.js";
 
 /**
  * see examples [here](./tests/example.test.ts)
  */
 export class PrivateKey {
     static Generate() {
-        const pri = utils.randomPrivateKey();
+        const pri = utils.randomSecretKey();
         const key = new PrivateKey(pri);
         return key;
     }
@@ -19,11 +19,11 @@ export class PrivateKey {
         if (!ok) {
             return new InvalidKey(key, "length " + key.length);
         }
-        if (!utils.isValidPrivateKey(key)) {
-            return new InvalidKey(key, "not a valid private key");
-        }
 
         const hex = decodeHex(key);
+        if (!utils.isValidSecretKey(hex)) {
+            return new InvalidKey(key, "not a valid private key");
+        }
         return new PrivateKey(hex);
     }
 

@@ -1,6 +1,6 @@
 import * as nip44 from "./nip44.ts";
 import { default as vec } from "./nip44.json" with { type: "json" };
-import { schnorr } from "@noble/curves/secp256k1";
+import { schnorr } from "@noble/curves/secp256k1.js";
 import { assertEquals, assertMatch, fail } from "@std/assert";
 import { decodeHex, encodeHex } from "@std/encoding";
 const v2vec = vec.v2;
@@ -16,7 +16,7 @@ Deno.test("get_conversation_key", () => {
 
 Deno.test("encrypt_decrypt", () => {
     for (const v of v2vec.valid.encrypt_decrypt) {
-        const pub2 = encodeHex(schnorr.getPublicKey(v.sec2));
+        const pub2 = encodeHex(schnorr.getPublicKey(decodeHex(v.sec2)));
         const key = nip44.getConversationKey(v.sec1, pub2);
         if (key instanceof Error) fail(key.message);
 
@@ -40,6 +40,8 @@ Deno.test("calc_padded_len", () => {
 
 Deno.test("decrypt", async () => {
     for (const v of v2vec.invalid.decrypt) {
+        const cKey = decodeHex(v.conversation_key);
+        console.log(cKey.length)
         const err = nip44.decrypt(v.payload, decodeHex(v.conversation_key)) as Error;
         assertMatch(err.message, new RegExp(v.note));
     }
@@ -48,6 +50,6 @@ Deno.test("decrypt", async () => {
 Deno.test("get_conversation_key", async () => {
     for (const v of v2vec.invalid.get_conversation_key) {
         const err = nip44.getConversationKey(v.sec1, v.pub2) as Error;
-        assertMatch(err.message, /Cannot find square root|Point is not on curve/);
+        assertMatch(err.message, /Cannot find square root|Point is not on curve|invalid field element/);
     }
 });

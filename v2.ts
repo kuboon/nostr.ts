@@ -1,8 +1,7 @@
-import { schnorr } from "@noble/curves/secp256k1";
-import { sha256 } from "@noble/hashes/sha256";
+import { schnorr } from "@noble/curves/secp256k1.js";
+import { sha256 } from "@noble/hashes/sha2.js";
 import { utf8Encode } from "./nip4.ts";
-import { encodeHex } from "@std/encoding";
-import stringify from "npm:json-stable-stringify@1.1.1";
+import { decodeHex, encodeHex } from "@std/encoding";
 import { PrivateKey, PublicKey } from "./key.ts";
 import {
     InMemoryAccountContext,
@@ -50,9 +49,9 @@ export async function verify_event_v2<T extends { sig: string; pubkey: string; i
         const event_copy: { sig?: string; pubkey: string; id?: string } = { ...event };
         delete event_copy.sig;
         delete event_copy.id;
-        const buf = utf8Encode(stringify(event_copy));
+        const buf = utf8Encode(JSON.stringify(event_copy));
         const id = encodeHex(sha256(buf));
-        return schnorr.verify(event.sig, id, event.pubkey);
+        return schnorr.verify(decodeHex(event.sig), decodeHex(id), decodeHex(event.pubkey));
     } catch {
         return false;
     }
@@ -96,7 +95,7 @@ export class InMemoryAccountContext_V2 implements NostrAccountContext, Signer_V2
         event: T,
     ): Promise<T & { sig: string; id: string }> {
         {
-            const buf = utf8Encode(stringify(event));
+            const buf = utf8Encode(JSON.stringify(event));
             const id = encodeHex(sha256(buf));
             const sig = encodeHex(await signId(id, this.privateKey.hex));
             return { ...event, id, sig };

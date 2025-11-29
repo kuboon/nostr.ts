@@ -4,7 +4,7 @@ import { utf8Decode, utf8Encode } from "./nip4.ts";
 import { PrivateKey, PublicKey } from "./key.ts";
 import { InMemoryAccountContext, NostrKind } from "./nostr.ts";
 import { prepareEncryptedNostrEvent } from "./event.ts";
-import { ProjectivePoint } from "@noble/secp256k1";
+// import { ProjectivePoint } from "@noble/secp256k1";
 Deno.test("utf8 encrypt & decrypt", async (t) => {
     let pri1 = PrivateKey.Generate();
     let pub1 = pri1.toPublicKey();

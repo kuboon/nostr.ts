@@ -1,12 +1,12 @@
 import { decodeBase64, encodeBase64 } from "@std/encoding";
 
-import { chacha20 } from "@noble/ciphers/chacha";
-import { ensureBytes, equalBytes } from "@noble/ciphers/utils";
-import { expand as hkdf_expand, extract as hkdf_extract } from "@noble/hashes/hkdf";
-import { hmac } from "@noble/hashes/hmac";
-import { sha256 } from "@noble/hashes/sha256";
-import { concatBytes, randomBytes } from "@noble/hashes/utils";
-import { secp256k1 } from "@noble/curves/secp256k1";
+import { chacha20 } from "@noble/ciphers/chacha.js";
+import { equalBytes } from "@noble/ciphers/utils.js";
+import { expand as hkdf_expand, extract as hkdf_extract } from "@noble/hashes/hkdf.js";
+import { hmac } from "@noble/hashes/hmac.js";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { concatBytes, randomBytes, hexToBytes } from "@noble/hashes/utils.js";
+import { secp256k1 } from "@noble/curves/secp256k1.js";
 
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();
@@ -52,8 +52,8 @@ export function decrypt(payload: string, conversationKey: Uint8Array): string | 
 
 export function getConversationKey(privkeyA: string, pubkeyB: string): Uint8Array | Error {
     try {
-        const sharedX = secp256k1.getSharedSecret(privkeyA, "02" + pubkeyB).subarray(1, 33);
-        return hkdf_extract(sha256, sharedX, "nip44-v2");
+        const sharedX = secp256k1.getSharedSecret(hexToBytes(privkeyA), hexToBytes("02" + pubkeyB)).subarray(1, 33);
+        return hkdf_extract(sha256, sharedX, new TextEncoder().encode("nip44-v2"));
     } catch (e) {
         if (e instanceof Error == false) {
             throw e; // impossible
@@ -144,8 +144,8 @@ function decodePayload(payload: string) {
 }
 
 function getMessageKeys(conversationKey: Uint8Array, nonce: Uint8Array) {
-    ensureBytes(conversationKey, 32);
-    ensureBytes(nonce, 32);
+    if(conversationKey.length !== 32) throw new Error("conversationKey must be 32 bytes");
+    if(nonce.length !== 32) throw new Error("nonce must be 32 bytes");
     const keys = hkdf_expand(sha256, conversationKey, nonce, 76);
     return {
         chacha_key: keys.subarray(0, 32),

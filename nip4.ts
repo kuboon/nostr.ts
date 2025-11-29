@@ -3,6 +3,7 @@ ende stands for encryption decryption
 */
 
 import { getSharedSecret } from "@noble/secp256k1";
+import { decodeHex } from "@std/encoding/hex";
 
 export async function encrypt(
     publicKey: string,
@@ -11,7 +12,7 @@ export async function encrypt(
 ): Promise<string | Error> {
     let key;
     try {
-        key = getSharedSecret(privateKey, "02" + publicKey);
+        key = getSharedSecret(decodeHex(privateKey), decodeHex("02" + publicKey));
     } catch (e) {
         return e as Error;
     }
@@ -21,7 +22,7 @@ export async function encrypt(
     const plaintext = encoder.encode(message);
     const cryptoKey = await crypto.subtle.importKey(
         "raw",
-        normalizedKey,
+        normalizedKey.buffer as ArrayBuffer,
         { name: "AES-CBC" },
         false,
         ["encrypt"],
@@ -42,7 +43,7 @@ export async function decrypt(
     publicKey: string,
     data: string,
 ): Promise<string | Error> {
-    const key = getSharedSecret(privateKey, "02" + publicKey); // this line is very slow
+    const key = getSharedSecret(decodeHex(privateKey), decodeHex("02" + publicKey)); // this line is very slow
     return decrypt_with_shared_secret(data, key);
 }
 
@@ -55,7 +56,7 @@ export async function decrypt_with_shared_secret(
 
     const cryptoKey = await crypto.subtle.importKey(
         "raw",
-        normalizedKey,
+        normalizedKey.buffer as ArrayBuffer,
         { name: "AES-CBC" },
         false,
         ["decrypt"],
