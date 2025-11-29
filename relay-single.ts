@@ -315,7 +315,10 @@ export class SingleRelayConnection implements Subscriber, SubscriptionCloser, Ev
         }
     }
 
-    async newSub(subID: string, ...filters: NostrFilter[]): Promise<SubscriptionStream | SubscriptionAlreadyExist | AuthError> {
+    async newSub(
+        subID: string,
+        ...filters: NostrFilter[]
+    ): Promise<SubscriptionStream | SubscriptionAlreadyExist | AuthError> {
         if (this.error instanceof AuthError) {
             return this.error;
         }

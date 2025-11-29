@@ -41,7 +41,7 @@ Deno.test("calc_padded_len", () => {
 Deno.test("decrypt", async () => {
     for (const v of v2vec.invalid.decrypt) {
         const cKey = decodeHex(v.conversation_key);
-        console.log(cKey.length)
+        console.log(cKey.length);
         const err = nip44.decrypt(v.payload, decodeHex(v.conversation_key)) as Error;
         assertMatch(err.message, new RegExp(v.note));
     }

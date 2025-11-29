@@ -1,6 +1,8 @@
 import { newURL, RESTRequestFailed } from "./_helper.ts";
 
-export async function getRelayInformation(url: URL | string): Promise<RelayInformation | RESTRequestFailed | TypeError | Error> {
+export async function getRelayInformation(
+    url: URL | string,
+): Promise<RelayInformation | RESTRequestFailed | TypeError | Error> {
     const httpURL = newURL(url);
     if (httpURL instanceof TypeError) {
         return httpURL;

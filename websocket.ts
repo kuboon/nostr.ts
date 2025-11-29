@@ -141,7 +141,9 @@ export class AsyncWebSocket implements BidirectionalNetwork {
         };
     }
 
-    async send(str: string | ArrayBufferLike | Blob | ArrayBufferView): Promise<WebSocketClosed | Error | undefined> {
+    async send(
+        str: string | ArrayBufferLike | Blob | ArrayBufferView,
+    ): Promise<WebSocketClosed | Error | undefined> {
         let err = await this.untilOpen();
         if (err) {
             return err;

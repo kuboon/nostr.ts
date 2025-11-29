@@ -2,7 +2,7 @@ import { PrivateKey, PublicKey } from "./key.ts";
 import { decrypt_with_shared_secret, encrypt, utf8Encode } from "./nip4.ts";
 import * as nip44 from "./nip44.ts";
 
-import { encodeHex, decodeHex } from "@std/encoding";
+import { decodeHex, encodeHex } from "@std/encoding";
 import { getSharedSecret } from "@noble/secp256k1";
 import { schnorr } from "@noble/curves/secp256k1.js";
 import { sha256 } from "@noble/hashes/sha2.js";
@@ -286,7 +286,10 @@ export class InMemoryAccountContext implements NostrAccountContext {
             let key = this.sharedSecretsMap.get(decryptionPublicKey);
             if (key == undefined) {
                 try {
-                    key = getSharedSecret(decodeHex(this.privateKey.hex), decodeHex("02" + decryptionPublicKey)) as Uint8Array;
+                    key = getSharedSecret(
+                        decodeHex(this.privateKey.hex),
+                        decodeHex("02" + decryptionPublicKey),
+                    ) as Uint8Array;
                 } catch (e) {
                     return e as Error;
                 }
@@ -299,7 +302,11 @@ export class InMemoryAccountContext implements NostrAccountContext {
 
 export async function verifyEvent(event: NostrEvent): Promise<boolean> {
     try {
-        return schnorr.verify(decodeHex(event.sig), decodeHex(await calculateId(event)), decodeHex(event.pubkey));
+        return schnorr.verify(
+            decodeHex(event.sig),
+            decodeHex(await calculateId(event)),
+            decodeHex(event.pubkey),
+        );
     } catch {
         return false;
     }

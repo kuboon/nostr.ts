@@ -193,9 +193,9 @@ export class ConnectionPool
         ...filters: NostrFilter[]
     ): Promise<
         | {
-              filters: NostrFilter[];
-              chan: Channel<{ res: RelayResponse_REQ_Message; url: URL }>;
-          }
+            filters: NostrFilter[];
+            chan: Channel<{ res: RelayResponse_REQ_Message; url: URL }>;
+        }
         | SubscriptionAlreadyExist
     > {
         if (this.subscriptionMap.has(subID)) {
