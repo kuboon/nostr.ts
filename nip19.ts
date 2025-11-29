@@ -17,11 +17,11 @@ export class NoteID {
         return new Error(`${id} is not valid`);
     }
 
-    static FromHex(id: string) {
+    static FromHex(id: string): NoteID {
         return new NoteID(id);
     }
 
-    static FromString(raw: string) {
+    static FromString(raw: string): NoteID | Error {
         const key = this.FromBech32(raw);
         if (key instanceof Error) {
             return this.FromHex(raw);
@@ -32,7 +32,7 @@ export class NoteID {
     private _bech32: string | undefined;
     private constructor(public readonly hex: string) {}
 
-    bech32() {
+    bech32(): string {
         if (this._bech32) {
             return this._bech32;
         }
@@ -41,13 +41,13 @@ export class NoteID {
     }
 }
 
-function toBech32(hex: string, prefix: string) {
+function toBech32(hex: string, prefix: string): string {
     const array = decodeHex(hex);
     const words = bech32.toWords(array);
     return bech32.encode(prefix, words, 1500);
 }
 
-function toHex(bech: string) {
+function toHex(bech: string): string {
     const code = bech32.decode(bech, 1500);
     const data = new Uint8Array(bech32.fromWords(code.words));
     return encodeHex(data);
@@ -108,7 +108,7 @@ export class NostrAddress {
         const words = bech32.toWords(data);
         return bech32.encode("naddr", words, 1500);
     }
-    static decode(naddr: string) {
+    static decode(naddr: string): NostrAddress | Error {
         let words;
         try {
             const res = bech32.decode(naddr, 1500);
@@ -152,7 +152,7 @@ export class NostrProfile {
         const words = bech32.toWords(data);
         return bech32.encode("nprofile", words, 1500);
     }
-    static decode(nprofile: string) {
+    static decode(nprofile: string): NostrProfile | Error {
         let words;
         try {
             const res = bech32.decode(nprofile, 1500);
@@ -227,7 +227,7 @@ export class Nevent {
         const words = bech32.toWords(data);
         return bech32.encode("nevent", words, 1500);
     }
-    static decode(nevent: string) {
+    static decode(nevent: string): Nevent | Error {
         let words;
         try {
             const res = bech32.decode(nevent, 1500);

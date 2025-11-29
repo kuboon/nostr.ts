@@ -5,7 +5,7 @@ import { wordlist } from "@scure/bip39/wordlists/english.js";
 import { HDKey } from "@scure/bip32";
 import { PrivateKey } from "./key.ts";
 
-export function privateKeyFromSeedWords(mnemonic: string | string[], passphrase?: string) {
+export function privateKeyFromSeedWords(mnemonic: string | string[], passphrase?: string): PrivateKey | Error {
     if (mnemonic instanceof Array) {
         mnemonic = mnemonic.join(" ");
     }

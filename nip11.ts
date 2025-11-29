@@ -1,6 +1,6 @@
 import { newURL, RESTRequestFailed } from "./_helper.ts";
 
-export async function getRelayInformation(url: URL | string) {
+export async function getRelayInformation(url: URL | string): Promise<RelayInformation | RESTRequestFailed | TypeError | Error> {
     const httpURL = newURL(url);
     if (httpURL instanceof TypeError) {
         return httpURL;
@@ -37,6 +37,6 @@ export type RelayInformation = {
     icon?: string;
 };
 
-export function robohash(url: string | URL) {
+export function robohash(url: string | URL): string {
     return `https://robohash.org/${url}`;
 }

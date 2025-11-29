@@ -141,7 +141,7 @@ export class AsyncWebSocket implements BidirectionalNetwork {
         };
     }
 
-    async send(str: string | ArrayBufferLike | Blob | ArrayBufferView) {
+    async send(str: string | ArrayBufferLike | Blob | ArrayBufferView): Promise<WebSocketClosed | Error | undefined> {
         let err = await this.untilOpen();
         if (err) {
             return err;
@@ -189,7 +189,7 @@ export class AsyncWebSocket implements BidirectionalNetwork {
 
     // only unblocks when the socket is open
     // if the socket is closed or closing, blocks forever
-    async untilOpen() {
+    async untilOpen(): Promise<WebSocketClosed | undefined> {
         if (this.ws.readyState === WebSocket.CLOSED) {
             return new WebSocketClosed(this.url, this.status());
         }

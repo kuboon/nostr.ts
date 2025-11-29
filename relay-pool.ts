@@ -68,7 +68,7 @@ export class ConnectionPool
         }
     }
 
-    getRelays() {
+    getRelays(): Iterable<SingleRelayConnection> {
         return this.connections.values();
     }
 
@@ -84,7 +84,7 @@ export class ConnectionPool
         return this.connections.get(url);
     }
 
-    async addRelayURL(url: string | URL) {
+    async addRelayURL(url: string | URL): Promise<Error | SingleRelayConnection> {
         if (typeof url == "string") {
             if (!url.startsWith("ws://") && !url.startsWith("wss://")) {
                 url = "wss://" + url;
@@ -112,7 +112,7 @@ export class ConnectionPool
         return client;
     }
 
-    async addRelayURLs(urls: string[]) {
+    async addRelayURLs(urls: string[]): Promise<Error[] | undefined> {
         const ps = [];
         for (const url of urls) {
             ps.push(this.addRelayURL(url));
@@ -130,7 +130,7 @@ export class ConnectionPool
         return errs2;
     }
 
-    async addRelay(relay: SingleRelayConnection) {
+    async addRelay(relay: SingleRelayConnection): Promise<SingleRelayConnection | Error> {
         if (this.closed) {
             return new ConnectionPoolClosed("connection pool has been closed");
         }
@@ -191,7 +191,13 @@ export class ConnectionPool
     async newSub(
         subID: string,
         ...filters: NostrFilter[]
-    ) {
+    ): Promise<
+        | {
+              filters: NostrFilter[];
+              chan: Channel<{ res: RelayResponse_REQ_Message; url: URL }>;
+          }
+        | SubscriptionAlreadyExist
+    > {
         if (this.subscriptionMap.has(subID)) {
             return new SubscriptionAlreadyExist(subID, "relay pool");
         }
@@ -213,7 +219,7 @@ export class ConnectionPool
         return sub;
     }
 
-    async getEvent(id: NoteID | string) {
+    async getEvent(id: NoteID | string): Promise<NostrEvent | undefined | Error> {
         if (id instanceof NoteID) {
             id = id.hex;
         }
@@ -237,7 +243,7 @@ export class ConnectionPool
         }
     }
 
-    async sendEvent(nostrEvent: NostrEvent) {
+    async sendEvent(nostrEvent: NostrEvent): Promise<string | Error> {
         if (this.connections.size === 0) {
             return new NoRelayRegistered();
         }
@@ -259,7 +265,7 @@ export class ConnectionPool
         return "";
     }
 
-    async closeSub(subID: string) {
+    async closeSub(subID: string): Promise<void> {
         for (const relay of this.connections.values()) {
             await relay.closeSub(subID);
         }

@@ -100,7 +100,7 @@ export type SubscriptionStream = {
  */
 export class SingleRelayConnection implements Subscriber, SubscriptionCloser, EventSender, Closer {
     private _isClosedByClient = false;
-    isClosedByClient() {
+    isClosedByClient(): boolean {
         return this._isClosedByClient;
     }
 
@@ -108,10 +108,10 @@ export class SingleRelayConnection implements Subscriber, SubscriptionCloser, Ev
         string,
         SubscriptionStream
     >();
-    readonly send_promise_resolvers = new Map<
+    readonly send_promise_resolvers: Map<
         string,
         (res: { ok: boolean; message: string }) => void
-    >();
+    > = new Map();
     private error: AuthError | RelayDisconnectedByClient | undefined; // todo: check this error in public APIs
     private ws: BidirectionalNetwork | undefined;
 
@@ -315,7 +315,7 @@ export class SingleRelayConnection implements Subscriber, SubscriptionCloser, Ev
         }
     }
 
-    async newSub(subID: string, ...filters: NostrFilter[]) {
+    async newSub(subID: string, ...filters: NostrFilter[]): Promise<SubscriptionStream | SubscriptionAlreadyExist | AuthError> {
         if (this.error instanceof AuthError) {
             return this.error;
         }
@@ -340,7 +340,7 @@ export class SingleRelayConnection implements Subscriber, SubscriptionCloser, Ev
         return { filters, chan };
     }
 
-    async sendEvent(event: NostrEvent) {
+    async sendEvent(event: NostrEvent): Promise<string | Error> {
         if (this.ws == undefined) {
             return new WebSocketClosed(this.url.toString(), this.status());
         }
@@ -366,7 +366,7 @@ export class SingleRelayConnection implements Subscriber, SubscriptionCloser, Ev
         return res.message;
     }
 
-    async getEvent(id: NoteID | string) {
+    async getEvent(id: NoteID | string): Promise<NostrEvent | undefined | Error> {
         if (this.error) {
             return this.error;
         }
@@ -396,7 +396,7 @@ export class SingleRelayConnection implements Subscriber, SubscriptionCloser, Ev
         }
     }
 
-    async getReplaceableEvent(pubkey: PublicKey, kind: NostrKind) {
+    async getReplaceableEvent(pubkey: PublicKey, kind: NostrKind): Promise<NostrEvent | undefined | Error> {
         const subID = `${pubkey.bech32()}:${kind}`;
         const err = await this.closeSub(subID);
         if (err instanceof Error) return err;
@@ -423,7 +423,7 @@ export class SingleRelayConnection implements Subscriber, SubscriptionCloser, Ev
         }
     }
 
-    async closeSub(subID: string) {
+    async closeSub(subID: string): Promise<Error | undefined> {
         let err;
         if (this.ws != undefined) {
             err = await this.ws.send(JSON.stringify([
@@ -448,7 +448,7 @@ export class SingleRelayConnection implements Subscriber, SubscriptionCloser, Ev
         return err;
     }
 
-    close = async (force?: boolean) => {
+    close: (force?: boolean) => Promise<void> = async (force?: boolean) => {
         this._isClosedByClient = true;
         for (const [subID, { chan }] of this.subscriptionMap.entries()) {
             if (chan.closed()) {
@@ -470,9 +470,9 @@ export class SingleRelayConnection implements Subscriber, SubscriptionCloser, Ev
         }
     };
 
-    [Symbol.asyncDispose] = () => {
+    async [Symbol.asyncDispose](): Promise<void> {
         return this.close();
-    };
+    }
 
     isClosed(): boolean {
         if (this.ws == undefined) {
@@ -541,7 +541,7 @@ export class SingleRelayConnection implements Subscriber, SubscriptionCloser, Ev
          * before we have relay info as events,
          * let's pull it periodically to have an async iterable API
          */
-        getRelayInformationStream: () => {
+        getRelayInformationStream: (): csp.Channel<Error | RelayInformation> => {
             const chan = csp.chan<Error | RelayInformation>();
             (async () => {
                 let spaceInformation: RelayInformation | Error | undefined;
@@ -588,7 +588,9 @@ export class SingleRelayConnection implements Subscriber, SubscriptionCloser, Ev
          * v2 API, unstable
          * a stream of space members
          */
-        getSpaceMembersStream: () => {
+        getSpaceMembersStream: (): csp.Channel<
+            RESTRequestFailed | TypeError | SyntaxError | Error | SpaceMember[]
+        > => {
             const chan = csp.chan<
                 RESTRequestFailed | TypeError | SyntaxError | Error | SpaceMember[]
             >();
@@ -627,7 +629,7 @@ export class SingleRelayConnection implements Subscriber, SubscriptionCloser, Ev
             })();
             return chan;
         },
-        getSpaceInformation: () => {
+        getSpaceInformation: (): Promise<RelayInformation | RESTRequestFailed | TypeError | Error> => {
             return getRelayInformation(this.url);
         },
     };

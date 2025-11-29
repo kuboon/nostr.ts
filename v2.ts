@@ -44,7 +44,7 @@ export type Event_V2 = ChannelCreation | ChannelEdition | SpaceMember;
 
 export async function verify_event_v2<T extends { sig: string; pubkey: string; id: string }>(
     event: T,
-) {
+): Promise<boolean> {
     try {
         const event_copy: { sig?: string; pubkey: string; id?: string } = { ...event };
         delete event_copy.sig;
@@ -65,7 +65,7 @@ export interface Signer_V2 {
 }
 
 export class InMemoryAccountContext_V2 implements NostrAccountContext, Signer_V2 {
-    static Generate() {
+    static Generate(): InMemoryAccountContext_V2 {
         return new InMemoryAccountContext_V2(PrivateKey.Generate());
     }
 

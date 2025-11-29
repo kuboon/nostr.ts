@@ -17,7 +17,7 @@ const maxPlaintextSize = 0xffff; // 65535 (64kb-1) => padded to 64kb
 export function encrypt(
     plaintext: string,
     conversationKey: Uint8Array,
-    nonce = randomBytes(32),
+    nonce: Uint8Array = randomBytes(32),
 ): string | Error {
     const { chacha_key, chacha_nonce, hmac_key } = getMessageKeys(conversationKey, nonce);
     const padded = pad(plaintext);

@@ -83,7 +83,7 @@ export async function decrypt_with_shared_secret(
     }
 }
 
-export function utf8Encode(str: string) {
+export function utf8Encode(str: string): Uint8Array {
     let encoder = new TextEncoder();
     return encoder.encode(str);
 }

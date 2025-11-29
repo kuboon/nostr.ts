@@ -27,7 +27,7 @@ const SpaceMembers_Schema = z.object({
     member: z.string(),
 }).array();
 
-export async function getSpaceMembers(url: URL) {
+export async function getSpaceMembers(url: URL): Promise<SpaceMember[] | RESTRequestFailed | TypeError | SyntaxError> {
     // construct a new URL so that we don't change the old instance
     const httpURL = new URL(url);
     httpURL.protocol = httpURL.protocol == "wss:" ? "https" : "http";

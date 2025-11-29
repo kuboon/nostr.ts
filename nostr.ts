@@ -210,7 +210,7 @@ export class DecryptionFailure extends Error {
     }
 }
 
-export async function calculateId(event: UnsignedNostrEvent) {
+export async function calculateId(event: UnsignedNostrEvent): Promise<string> {
     const commit = eventCommitment(event);
     const buf = utf8Encode(commit);
     return encodeHex(sha256(buf));
@@ -221,7 +221,7 @@ function eventCommitment(event: UnsignedNostrEvent): string {
     return JSON.stringify([0, pubkey, created_at, kind, tags, content]);
 }
 
-export async function signId(id: string, privateKey: string) {
+export async function signId(id: string, privateKey: string): Promise<Uint8Array> {
     return schnorr.sign(decodeHex(id), decodeHex(privateKey));
 }
 
@@ -229,11 +229,11 @@ export async function signId(id: string, privateKey: string) {
  * see examples [here](./tests/example.test.ts)
  */
 export class InMemoryAccountContext implements NostrAccountContext {
-    static New(privateKey: PrivateKey) {
+    static New(privateKey: PrivateKey): InMemoryAccountContext {
         return new InMemoryAccountContext(privateKey);
     }
 
-    static FromString(prikey: string) {
+    static FromString(prikey: string): InMemoryAccountContext | Error {
         const key = PrivateKey.FromString(prikey);
         if (key instanceof Error) {
             return key;
@@ -241,7 +241,7 @@ export class InMemoryAccountContext implements NostrAccountContext {
         return new InMemoryAccountContext(key);
     }
 
-    static Generate() {
+    static Generate(): InMemoryAccountContext {
         return new InMemoryAccountContext(PrivateKey.Generate());
     }
 
@@ -297,7 +297,7 @@ export class InMemoryAccountContext implements NostrAccountContext {
     }
 }
 
-export async function verifyEvent(event: NostrEvent) {
+export async function verifyEvent(event: NostrEvent): Promise<boolean> {
     try {
         return schnorr.verify(decodeHex(event.sig), decodeHex(await calculateId(event)), decodeHex(event.pubkey));
     } catch {

@@ -8,13 +8,13 @@ import { hexToNumber } from "@noble/ciphers/utils.js";
  * see examples [here](./tests/example.test.ts)
  */
 export class PrivateKey {
-    static Generate() {
+    static Generate(): PrivateKey {
         const pri = utils.randomSecretKey();
         const key = new PrivateKey(pri);
         return key;
     }
 
-    static FromHex(key: string) {
+    static FromHex(key: string): PrivateKey | InvalidKey {
         const ok = is64Hex(key);
         if (!ok) {
             return new InvalidKey(key, "length " + key.length);
@@ -27,7 +27,7 @@ export class PrivateKey {
         return new PrivateKey(hex);
     }
 
-    static FromBech32(key: string) {
+    static FromBech32(key: string): PrivateKey | Error {
         if (key.substring(0, 4) === "nsec") {
             try {
                 const code = bech32.decode(key, 1500);
@@ -41,7 +41,7 @@ export class PrivateKey {
         return new Error(`${key} is not valid`);
     }
 
-    static FromString(raw: string) {
+    static FromString(raw: string): PrivateKey | InvalidKey | Error {
         const key = PrivateKey.FromBech32(raw);
         if (key instanceof Error) {
             return PrivateKey.FromHex(raw);
@@ -73,7 +73,7 @@ export class PrivateKey {
  * see examples [here](./tests/example.test.ts)
  */
 export class PublicKey {
-    static FromString(key: string) {
+    static FromString(key: string): PublicKey | InvalidKey {
         const pub = PublicKey.FromBech32(key);
         if (pub instanceof Error) {
             return PublicKey.FromHex(key);
@@ -81,7 +81,7 @@ export class PublicKey {
         return pub;
     }
 
-    static FromHex(key: string) {
+    static FromHex(key: string): PublicKey | InvalidKey {
         const ok = is64Hex(key);
         if (!ok) {
             return new InvalidKey(key, "length " + key.length);
@@ -98,7 +98,7 @@ export class PublicKey {
         return new PublicKey(key);
     }
 
-    static FromBech32(key: string) {
+    static FromBech32(key: string): PublicKey | InvalidKey {
         if (key.substring(0, 4) != "npub") {
             return new InvalidKey(key, "not a npub");
         }
@@ -129,7 +129,7 @@ export class PublicKey {
     }
 }
 
-export function is64Hex(key: string) {
+export function is64Hex(key: string): boolean {
     return /^[0-9a-f]{64}$/.test(key);
 }
 
